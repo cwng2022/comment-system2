@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班級吐槽牆</title>
+    <style>
+        :root {
+            --bg: #f8f4ed;
+            --card-bg: #ffffff;
+            --text: #3e3640;
+            --text-secondary: #7a727d;
+            --border: #e5ded6;
+            --shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            --shadow-hover: 0 4px 18px rgba(0, 0, 0, 0.10);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --transition: 0.2s ease;
+            --color-school: #5b8def;
+            --color-school-bg: #eef4fd;
+            --color-homework: #f0a04b;
+            --color-homework-bg: #fef6ee;
+            --color-life: #5bbf7b;
+            --color-life-bg: #eef9f1;
+            --color-other: #9b7ec4;
+            --color-other-bg: #f6f2fa;
+            --color-active: #5bbf7b;
+            --color-done: #b0a8b2;
+            --color-like: #e8606e;
+            --color-primary: #e67e3a;
+            --color-primary-hover: #d06d2c;
+            --font-sans: 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: var(--font-sans);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 20px 16px 60px;
+            background-image:
+                radial-gradient(ellipse at 20% 15%, rgba(230, 126, 58, 0.04) 0%, transparent 55%),
+                radial-gradient(ellipse at 75% 60%, rgba(91, 141, 239, 0.05) 0%, transparent 55%),
+                radial-gradient(ellipse at 50% 85%, rgba(155, 126, 196, 0.04) 0%, transparent 55%);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 680px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            padding: 10px 0 4px;
+        }
+        .header .icon-row {
+            font-size: 42px;
+            margin-bottom: 4px;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            color: #4a3f35;
+            margin: 0;
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        /* Form Card */
+        .form-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 20px 22px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .form-card label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #5c535e;
+            letter-spacing: 0.02em;
+        }
+        .form-card textarea {
+            width: 100%;
+            min-height: 80px;
+            border: 2px solid #e8e2da;
+            border-radius: var(--radius-sm);
+            padding: 12px 14px;
+            font-size: 1rem;
+            font-family: var(--font-sans);
+            resize: vertical;
+            transition: var(--transition);
+            background: #fdfcf9;
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .form-card textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(230, 126, 58, 0.08);
+            background: #fff;
+        }
+        .form-card textarea::placeholder {
+            color: #c4bdb5;
+        }
+        .form-row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .form-row select {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 14px;
+            border: 2px solid #e8e2da;
+            border-radius: var(--radius-sm);
+            font-size: 0.95rem;
+            font-family: var(--font-sans);
+            background: #fdfcf9;
+            color: var(--text);
+            cursor: pointer;
+            transition: var(--transition);
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a727d' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            padding-right: 36px;
+        }
+        .form-row select:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(230, 126, 58, 0.08);
+            background-color: #fff;
+        }
+        .btn-submit {
+            padding: 10px 24px;
+            background: var(--color-primary);
+            color: #fff;
+            border: none;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            letter-spacing: 0.03em;
+            transition: var(--transition);
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(230, 126, 58, 0.25);
+        }
+        .btn-submit:hover {
+            background: var(--color-primary-hover);
+            box-shadow: 0 4px 14px rgba(230, 126, 58, 0.35);
+            transform: translateY(-1px);
+        }
+        .btn-submit:active {
+            transform: scale(0.97);
+            box-shadow: 0 1px 4px rgba(230, 126, 58, 0.2);
+        }
+
+        /* Filters */
+        .filters-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .filter-group .filter-label {
+            font-weight: 700;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.03em;
+            margin-right: 2px;
+            white-space: nowrap;
+        }
+        .filter-btn {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 2px solid #e0d9cf;
+            background: #fdfcf9;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+            color: #6b636e;
+            white-space: nowrap;
+            font-family: var(--font-sans);
+        }
+        .filter-btn:hover {
+            background: #f0ebe1;
+            border-color: #d0c7ba;
+        }
+        .filter-btn.active {
+            background: #4a3f35;
+            color: #fff;
+            border-color: #4a3f35;
+            box-shadow: 0 2px 6px rgba(74, 63, 53, 0.25);
+        }
+
+        /* Records List */
+        .records-list {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 44px 20px;
+            color: #c4bdb5;
+            font-size: 1rem;
+            letter-spacing: 0.03em;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 2px dashed #e8e2da;
+        }
+        .empty-state .empty-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        /* Record Card */
+        .record-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid #d0c7ba;
+            transition: var(--transition);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .record-card:hover {
+            box-shadow: var(--shadow-hover);
+            transform: translateY(-1px);
+        }
+        .record-card.category-school {
+            border-left-color: var(--color-school);
+        }
+        .record-card.category-功課 {
+            border-left-color: var(--color-homework);
+        }
+        .record-card.category-生活 {
+            border-left-color: var(--color-life);
+        }
+        .record-card.category-其他 {
+            border-left-color: var(--color-other);
+        }
+        .record-card.status-done {
+            opacity: 0.65;
+            border-left-color: #c5bfc7 !important;
+            background: #faf9f7;
+        }
+        .record-card.status-done .record-content {
+            text-decoration: line-through;
+            text-decoration-color: #c5bfc7;
+            text-decoration-thickness: 2px;
+            color: #9a939d;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .record-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .category-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+        .category-badge.cat-school {
+            background: var(--color-school-bg);
+            color: #3b6fd4;
+        }
+        .category-badge.cat-功課 {
+            background: var(--color-homework-bg);
+            color: #d4812e;
+        }
+        .category-badge.cat-生活 {
+            background: var(--color-life-bg);
+            color: #3d9a5e;
+        }
+        .category-badge.cat-其他 {
+            background: var(--color-other-bg);
+            color: #7b5da8;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+        }
+        .status-badge.status-active {
+            background: #eef9f1;
+            color: #3d9a5e;
+        }
+        .status-badge.status-done {
+            background: #f5f3f5;
+            color: #8a828d;
+        }
+        .record-time {
+            font-size: 0.78rem;
+            color: #b0a8b2;
+            letter-spacing: 0.02em;
+        }
+        .record-content {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: var(--text);
+            word-break: break-word;
+        }
+        .record-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .btn-like {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 2px solid #f0d0d3;
+            background: #fff5f5;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--color-like);
+            transition: var(--transition);
+            font-family: var(--font-sans);
+            user-select: none;
+        }
+        .btn-like:hover {
+            background: #ffe8ea;
+            border-color: #e8b0b5;
+            transform: scale(1.04);
+        }
+        .btn-like:active {
+            transform: scale(0.94);
+            background: #ffd6da;
+        }
+        .btn-like .heart {
+            font-size: 1.1rem;
+            transition: var(--transition);
+        }
+        .btn-like:active .heart {
+            animation: heartPop 0.35s ease;
+        }
+        @keyframes heartPop {
+            0% {
+                transform: scale(1);
+            }
+            30% {
+                transform: scale(1.5);
+            }
+            60% {
+                transform: scale(0.85);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        .btn-toggle-status {
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 2px solid #e0d9cf;
+            background: #fdfcf9;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            transition: var(--transition);
+            color: #6b636e;
+            font-family: var(--font-sans);
+            white-space: nowrap;
+        }
+        .btn-toggle-status:hover {
+            background: #f0ebe1;
+            border-color: #c5bdb2;
+        }
+        .btn-toggle-status.is-done-btn {
+            border-color: #d5e0d0;
+            background: #f6faf4;
+            color: #5b8a4f;
+        }
+        .btn-toggle-status.is-done-btn:hover {
+            background: #eaf3e6;
+            border-color: #b8cfad;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #3e3640;
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 24px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            z-index: 999;
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .header .icon-row {
+                font-size: 32px;
+            }
+            .form-card {
+                padding: 14px 16px;
+            }
+            .record-card {
+                padding: 14px 15px;
+            }
+            .form-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-submit {
+                width: 100%;
+                text-align: center;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="icon-row">🗯️</div>
+            <h1>班級吐槽牆</h1>
+            <p class="subtitle">匿名發洩，放心吐槽 💬</p>
+        </div>
+
+        <!-- Form -->
+        <form class="form-card" id="submitForm" autocomplete="off">
+            <label for="contentInput">✏️ 你的吐槽</label>
+            <textarea
+            id="contentInput"
+            placeholder="寫下你想吐槽的事…（匿名發布）"
+            maxlength="500"
+            required
+        ></textarea>
+        <div class="form-row">
+            <select id="categorySelect" required>
+                <option value="學校">📚 學校</option>
+                <option value="功課">📝 功課</option>
+                <option value="生活">🍔 生活</option>
+                <option value="其他">💬 其他</option>
+            </select>
+            <button type="submit" class="btn-submit">🚀 匿名送出</button>
+        </div>
+    </form>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <div class="filter-group" id="statusFilterGroup">
+            <span class="filter-label">📌 狀態：</span>
+            <button class="filter-btn active" data-status-filter="all">全部</button>
+            <button class="filter-btn" data-status-filter="active">🔥 進行中</button>
+            <button class="filter-btn" data-status-filter="done">✅ 已完成</button>
+        </div>
+        <div class="filter-group" id="categoryFilterGroup">
+            <span class="filter-label">🏷️ 分類：</span>
+            <button class="filter-btn active" data-category-filter="all">全部</button>
+            <button class="filter-btn" data-category-filter="學校">📚 學校</button>
+            <button class="filter-btn" data-category-filter="功課">📝 功課</button>
+            <button class="filter-btn" data-category-filter="生活">🍔 生活</button>
+            <button class="filter-btn" data-category-filter="其他">💬 其他</button>
+        </div>
+    </div>
+
+    <!-- Records List -->
+    <div class="records-list" id="recordsList">
+        <!-- dynamically rendered -->
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    (function() {
+        // ==================== DOM 元素 ====================
+        const submitForm = document.getElementById('submitForm');
+        const contentInput = document.getElementById('contentInput');
+        const categorySelect = document.getElementById('categorySelect');
+        const recordsListEl = document.getElementById('recordsList');
+        const toastEl = document.getElementById('toast');
+        const statusFilterGroup = document.getElementById('statusFilterGroup');
+        const categoryFilterGroup = document.getElementById('categoryFilterGroup');
+
+        // ==================== 狀態 ====================
+        let currentStatusFilter = 'all'; // 'all' | 'active' | 'done'
+        let currentCategoryFilter = 'all'; // 'all' | '學校' | '功課' | '生活' | '其他'
+        let toastTimer = null;
+
+        // ==================== Toast ====================
+        function showToast(message) {
+            if (toastTimer) clearTimeout(toastTimer);
+            toastEl.textContent = message;
+            toastEl.classList.add('show');
+            toastTimer = setTimeout(() => {
+                toastEl.classList.remove('show');
+                toastTimer = null;
+            }, 1800);
+        }
+
+        // ==================== Data Functions ====================
+
+        /**
+         * 從 localStorage 載入所有 records
+         * @returns {Array} records 陣列
+         */
+        function loadData() {
+            try {
+                const raw = localStorage.getItem('records');
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) return [];
+                return parsed;
+            } catch (e) {
+                console.warn('loadData 失敗，返回空陣列', e);
+                return [];
+            }
+        }
+
+        /**
+         * 儲存一整組 records 到 localStorage
+         * @param {Array} records
+         */
+        function saveAllData(records) {
+            try {
+                localStorage.setItem('records', JSON.stringify(records));
+            } catch (e) {
+                console.error('saveAllData 失敗', e);
+                showToast('⚠️ 儲存失敗，請檢查瀏覽器空間');
+            }
+        }
+
+        /**
+         * 根據表單資料創建一筆新的 record 物件（不儲存）
+         * @param {Object} formData - { content: string, category: string }
+         * @returns {Object} record 物件
+         */
+        function createRecord(formData) {
+            const id = 'rec_' + Date.now().toString(36) + '_' + Math.random().toString(36).substring(2, 8);
+            const record = {
+                id: id,
+                createdAt: new Date().toISOString(),
+                status: 'active',
+                content: formData.content.trim(),
+                category: formData.category,
+                likes: 0,
+            };
+            return record;
+        }
+
+        /**
+         * 將一筆 record 加入 localStorage 的 records 陣列中
+         * @param {Object} record
+         */
+        function saveData(record) {
+            const records = loadData();
+            records.push(record);
+            saveAllData(records);
+        }
+
+        /**
+         * 更新指定 id 的 record，傳入 changes 物件合併
+         * @param {string} id
+         * @param {Object} changes - 要更新的欄位，例如 { likes: 5 } 或 { status: 'done' }
+         */
+        function updateRecord(id, changes) {
+            const records = loadData();
+            const index = records.findIndex(r => r.id === id);
+            if (index === -1) {
+                console.warn('updateRecord: 找不到 id =', id);
+                return;
+            }
+            // 合併更新
+            records[index] = { ...records[index], ...changes };
+            saveAllData(records);
+        }
+
+        // ==================== 格式化 ====================
+        function formatDate(isoString) {
+            const d = new Date(isoString);
+            if (isNaN(d.getTime())) return isoString;
+            const yyyy = d.getFullYear();
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const dd = String(d.getDate()).padStart(2, '0');
+            const hh = String(d.getHours()).padStart(2, '0');
+            const min = String(d.getMinutes()).padStart(2, '0');
+            return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
+        }
+
+        // ==================== 取得過濾後的 records ====================
+        function getFilteredRecords() {
+            let records = loadData();
+
+            // status filter
+            if (currentStatusFilter === 'active') {
+                records = records.filter(r => r.status === 'active');
+            } else if (currentStatusFilter === 'done') {
+                records = records.filter(r => r.status === 'done');
+            }
+
+            // category filter
+            if (currentCategoryFilter !== 'all') {
+                records = records.filter(r => r.category === currentCategoryFilter);
+            }
+
+            // 依 createdAt 降序排列（最新在上方）
+            records.sort((a, b) => {
+                const timeA = new Date(a.createdAt).getTime();
+                const timeB = new Date(b.createdAt).getTime();
+                return timeB - timeA;
+            });
+
+            return records;
+        }
+
+        // ==================== 渲染列表 ====================
+        /**
+         * 根據傳入的 records 陣列渲染畫面
+         * @param {Array} recordsToShow
+         */
+        function renderList(recordsToShow) {
+            if (!recordsToShow || recordsToShow.length === 0) {
+                recordsListEl.innerHTML = `
+                        <div class="empty-state">
+                            <span class="empty-icon">📭</span>
+                            還沒有吐槽，快來搶沙發！
+                        </div>`;
+                return;
+            }
+
+            let html = '';
+            recordsToShow.forEach(record => {
+                const isDone = record.status === 'done';
+                const catClassMap = {
+                    '學校': 'cat-school',
+                    '功課': 'cat-功課',
+                    '生活': 'cat-生活',
+                    '其他': 'cat-其他',
+                };
+                const catClass = catClassMap[record.category] || 'cat-其他';
+                const catEmojiMap = {
+                    '學校': '📚',
+                    '功課': '📝',
+                    '生活': '🍔',
+                    '其他': '💬',
+                };
+                const catEmoji = catEmojiMap[record.category] || '💬';
+                const cardCategoryClass = 'category-' + record.category;
+                const cardStatusClass = isDone ? 'status-done' : '';
+
+                const statusBadgeHTML = isDone ?
+                    '<span class="status-badge status-done">✅ 已完成</span>' :
+                    '<span class="status-badge status-active">🔥 進行中</span>';
+
+                const toggleBtnHTML = isDone ?
+                    `<button class="btn-toggle-status is-done-btn" onclick="window._handleToggleStatus('${record.id}')" title="恢復為進行中">↩️ 恢復</button>` :
+                    `<button class="btn-toggle-status" onclick="window._handleToggleStatus('${record.id}')" title="標記為完成">✔️ 標記完成</button>`;
+
+                html += `
+                    <div class="record-card ${cardCategoryClass} ${cardStatusClass}" data-id="${record.id}">
+                        <div class="record-header">
+                            <div class="record-meta">
+                                <span class="category-badge ${catClass}">${catEmoji} ${record.category}</span>
+                                ${statusBadgeHTML}
+                            </div>
+                            <span class="record-time">🕒 ${formatDate(record.createdAt)}</span>
+                        </div>
+                        <div class="record-content">${escapeHTML(record.content)}</div>
+                        <div class="record-actions">
+                            <button class="btn-like" onclick="window._handleLike('${record.id}')" title="按讚 +1">
+                                <span class="heart">❤️</span> +1 &nbsp;<span>${record.likes}</span>
+                            </button>
+                            ${toggleBtnHTML}
+                        </div>
+                    </div>`;
+            });
+
+            recordsListEl.innerHTML = html;
+        }
+
+        /** 簡單的 HTML 跳脫 */
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ==================== 套用過濾並重新渲染 ====================
+        function applyFiltersAndRender() {
+            const filtered = getFilteredRecords();
+            renderList(filtered);
+        }
+
+        // ==================== 更新 filter 按鈕的 active 樣式 ====================
+        function updateFilterButtonsUI() {
+            // status filter buttons
+            const statusBtns = statusFilterGroup.querySelectorAll('.filter-btn');
+            statusBtns.forEach(btn => {
+                const val = btn.getAttribute('data-status-filter');
+                if (val === currentStatusFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            // category filter buttons
+            const catBtns = categoryFilterGroup.querySelectorAll('.filter-btn');
+            catBtns.forEach(btn => {
+                const val = btn.getAttribute('data-category-filter');
+                if (val === currentCategoryFilter) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        // ==================== 事件處理 ====================
+
+        /** 提交表單 */
+        submitForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const content = contentInput.value;
+            if (!content || content.trim() === '') {
+                showToast('⚠️ 請填寫吐槽內容！');
+                contentInput.focus();
+                return;
+            }
+            if (content.trim().length > 500) {
+                showToast('⚠️ 吐槽內容太長了，請縮短至500字以內');
+                return;
+            }
+            const category = categorySelect.value;
+            const formData = { content: content.trim(), category: category };
+            const newRecord = createRecord(formData);
+            saveData(newRecord);
+            // 清空表單
+            contentInput.value = '';
+            // category 保留使用者選擇，不重置
+            contentInput.focus();
+            showToast('🎉 吐槽已送出！');
+            applyFiltersAndRender();
+            updateFilterButtonsUI();
+        });
+
+        /** +1 按讚 */
+        window._handleLike = function(id) {
+            const records = loadData();
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            const newLikes = (record.likes || 0) + 1;
+            updateRecord(id, { likes: newLikes });
+            // 小動畫：短暫閃爍該卡片
+            const cardEl = document.querySelector(`.record-card[data-id="${id}"]`);
+            if (cardEl) {
+                cardEl.style.transition = 'box-shadow 0.15s ease, transform 0.15s ease';
+                cardEl.style.boxShadow = '0 0 0 4px rgba(232,96,110,0.35), 0 4px 18px rgba(0,0,0,0.10)';
+                cardEl.style.transform = 'scale(1.015)';
+                setTimeout(() => {
+                    cardEl.style.boxShadow = '';
+                    cardEl.style.transform = '';
+                }, 200);
+            }
+            applyFiltersAndRender();
+            updateFilterButtonsUI();
+        };
+
+        /** 切換 status */
+        window._handleToggleStatus = function(id) {
+            const records = loadData();
+            const record = records.find(r => r.id === id);
+            if (!record) return;
+            const newStatus = record.status === 'active' ? 'done' : 'active';
+            updateRecord(id, { status: newStatus });
+            const actionText = newStatus === 'done' ? '已標記完成 ✅' : '已恢復為進行中 🔥';
+            showToast(actionText);
+            applyFiltersAndRender();
+            updateFilterButtonsUI();
+        };
+
+        // ==================== Filter 按鈕事件綁定 ====================
+        statusFilterGroup.addEventListener('click', function(e) {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+            const filterVal = btn.getAttribute('data-status-filter');
+            if (!filterVal) return;
+            currentStatusFilter = filterVal;
+            updateFilterButtonsUI();
+            applyFiltersAndRender();
+        });
+
+        categoryFilterGroup.addEventListener('click', function(e) {
+            const btn = e.target.closest('.filter-btn');
+            if (!btn) return;
+            const filterVal = btn.getAttribute('data-category-filter');
+            if (!filterVal) return;
+            currentCategoryFilter = filterVal;
+            updateFilterButtonsUI();
+            applyFiltersAndRender();
+        });
+
+        // ==================== 初始化 ====================
+        function init() {
+            applyFiltersAndRender();
+            updateFilterButtonsUI();
+        }
+
+        init();
+    })();
+</script>
+</body>
+</html>
