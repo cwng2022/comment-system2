@@ -547,6 +547,9 @@
 
 <script>
     (function() {
+        // ==================== 設定 ====================
+        const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzRCkhBCBnZo538BNHWTQaScrkX9eIGtFR0RyTXQerZrj6DXXCugR-unMzmJMvT_occ/exec";
+
         // ==================== DOM 元素 ====================
         const submitForm = document.getElementById('submitForm');
         const contentInput = document.getElementById('contentInput');
@@ -570,6 +573,38 @@
                 toastEl.classList.remove('show');
                 toastTimer = null;
             }, 1800);
+        }
+
+        // ==================== Sheet Connector ====================
+        async function fetchRecordsFromSheet() {
+            const response = await fetch(APPS_SCRIPT_URL);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            if (!data.ok) throw new Error(data.error || 'Sheet 回傳失敗');
+            return (data.records || []).map(normalizeRecord);
+        }
+
+        async function syncToSheet(payload) {
+            const response = await fetch(APPS_SCRIPT_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if (!data.ok) throw new Error(data.error || '同步失敗');
+            return data;
+        }
+
+        function normalizeRecord(record) {
+            // 確保 likes 為數字，其他欄位保持字串
+            return {
+                id: String(record.id || ''),
+                createdAt: String(record.createdAt || ''),
+                status: String(record.status || 'active'),
+                content: String(record.content || ''),
+                category: String(record.category || '其他'),
+                likes: Number(record.likes) || 0
+            };
         }
 
         // ==================== Data Functions ====================
@@ -793,7 +828,7 @@
         // ==================== 事件處理 ====================
 
         /** 提交表單 */
-        submitForm.addEventListener('submit', function(e) {
+        submitForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             const content = contentInput.value;
             if (!content || content.trim() === '') {
@@ -808,23 +843,35 @@
             const category = categorySelect.value;
             const formData = { content: content.trim(), category: category };
             const newRecord = createRecord(formData);
+
+            // 先存入 localStorage（確保離線可用）
             saveData(newRecord);
             // 清空表單
             contentInput.value = '';
-            // category 保留使用者選擇，不重置
             contentInput.focus();
-            showToast('🎉 吐槽已送出！');
             applyFiltersAndRender();
             updateFilterButtonsUI();
+
+            // 嘗試同步到 Google Sheet
+            try {
+                await syncToSheet({ action: "create", record: newRecord });
+                showToast('🎉 吐槽已送出！');
+            } catch (err) {
+                console.warn('同步到 Sheet 失敗', err);
+                showToast('⚠️ 雲端同步失敗，資料已存於本機');
+            }
         });
 
         /** +1 按讚 */
-        window._handleLike = function(id) {
+        window._handleLike = async function(id) {
             const records = loadData();
             const record = records.find(r => r.id === id);
             if (!record) return;
             const newLikes = (record.likes || 0) + 1;
+
+            // 更新 localStorage
             updateRecord(id, { likes: newLikes });
+
             // 小動畫：短暫閃爍該卡片
             const cardEl = document.querySelector(`.record-card[data-id="${id}"]`);
             if (cardEl) {
@@ -836,21 +883,40 @@
                     cardEl.style.transform = '';
                 }, 200);
             }
+
             applyFiltersAndRender();
             updateFilterButtonsUI();
+
+            // 同步至 Sheet
+            try {
+                await syncToSheet({ action: "update", id, changes: { likes: newLikes } });
+            } catch (err) {
+                console.warn('按讚同步失敗', err);
+                showToast('⚠️ 按讚尚未同步到雲端');
+            }
         };
 
         /** 切換 status */
-        window._handleToggleStatus = function(id) {
+        window._handleToggleStatus = async function(id) {
             const records = loadData();
             const record = records.find(r => r.id === id);
             if (!record) return;
             const newStatus = record.status === 'active' ? 'done' : 'active';
+
+            // 更新 localStorage
             updateRecord(id, { status: newStatus });
             const actionText = newStatus === 'done' ? '已標記完成 ✅' : '已恢復為進行中 🔥';
             showToast(actionText);
             applyFiltersAndRender();
             updateFilterButtonsUI();
+
+            // 同步至 Sheet
+            try {
+                await syncToSheet({ action: "update", id, changes: { status: newStatus } });
+            } catch (err) {
+                console.warn('狀態同步失敗', err);
+                showToast('⚠️ 狀態變更尚未同步到雲端');
+            }
         };
 
         // ==================== Filter 按鈕事件綁定 ====================
@@ -875,7 +941,15 @@
         });
 
         // ==================== 初始化 ====================
-        function init() {
+        async function init() {
+            // 優先從 Google Sheet 載入資料
+            try {
+                const sheetRecords = await fetchRecordsFromSheet();
+                saveAllData(sheetRecords);
+                console.log('✅ 已從 Sheet 載入 ' + sheetRecords.length + ' 筆記錄');
+            } catch (err) {
+                console.warn('⚠️ 無法讀取 Sheet，使用本機資料', err);
+            }
             applyFiltersAndRender();
             updateFilterButtonsUI();
         }
